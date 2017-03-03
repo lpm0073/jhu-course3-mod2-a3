@@ -123,14 +123,14 @@ class Racer
     self.class.collection.find(:_id => BSON::ObjectId.from_string(@id))
                          .update_one(params)
   end
-  
+
 
   # remove the document associated with this instance form the DB
   def destroy
     Rails.logger.debug {"destroying #{self}"}
 
-    self.class.collection
-              .find(_id:@id)
-              .delete_one   
+    #self.class.collection.find(_id:@id).delete_one
+    self.class.collection.find(:_id => BSON::ObjectId.from_string(@id)).delete_one
+
   end  
 end
