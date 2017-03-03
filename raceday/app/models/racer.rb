@@ -1,7 +1,6 @@
 class Racer
   include ActiveModel::Model
 
-                #id, number, first_name, last_name, gender, group and secs
   attr_accessor :id, :number, :first_name, :last_name, :gender, :group, :secs
 
   def to_s
@@ -11,7 +10,7 @@ class Racer
   # initialize from both a Mongo and Web hash
   def initialize(params={})
     #switch between both internal and external views of id and population
-    @id=params[:_id].nil? ? params[:id] : params[:_id]
+    @id=params[:_id].nil? ? params[:id] : params[:_id].to_s
     @number=params[:number]
     @first_name=params[:first_name]
     @last_name=params[:last_name]
@@ -96,12 +95,10 @@ class Racer
   # locate a specific document. Use initialize(hash) on the result to 
   # get in class instance form
   def self.find id
-    Rails.logger.debug {"getting racer #{id}"}
+    Rails.logger.debug {"getting racer #{id} in class: #{id.class}"}
 
-    doc=collection.find(:_id=>id)
-                  .projection({_id:true, number:true, first_name:true, last_name:true, gender:true, group:true, secs:true})
-                  .first
-    return doc.nil? ? nil : Racer.new(doc)
+    result = collection.find({'_id': BSON::ObjectId.from_string(id)}).first
+    result.nil? ? nil : Racer.new(result)
   end 
 
   # create a new document using the current instance
