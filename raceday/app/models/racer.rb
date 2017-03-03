@@ -1,19 +1,23 @@
 class Racer
   include ActiveModel::Model
 
-  attr_accessor :id, :city, :state, :population
+                #id, number, first_name, last_name, gender, group and secs
+  attr_accessor :id, :number, :first_name, :last_name, :gender, :group, :secs
 
   def to_s
-    "#{@id}: #{@city}, #{@state}, pop=#{@population}"
+    "#{@id}: #{@number}, #{@first_name}, #{@last_name}, #{@gender}, #{@group}, #{secs}"
   end
 
   # initialize from both a Mongo and Web hash
   def initialize(params={})
     #switch between both internal and external views of id and population
     @id=params[:_id].nil? ? params[:id] : params[:_id]
-    @city=params[:city]
-    @state=params[:state]
-    @population=params[:pop].nil? ? params[:population] : params[:pop]
+    @number=params[:number]
+    @first_name=params[:first_name]
+    @last_name=params[:last_name]
+    @gender=params[:gender]
+    @group=params[:group]
+    @secs=params[:secs]
   end
 
   # tell Rails whether this instance is persisted
@@ -44,7 +48,6 @@ class Racer
   #   * sort - hash expressing multi-term sort order
   #   * skip - number of documents to skip before returnign results
   #   * limit - number of documents to include
-  #def self.all(prototype={}, sort={:population=>1}, offset=0, limit=nil)
   def  self.all(prototype={}, sort={number:1}, skip=0, limit=nil)
     #convert to keys and then eliminate any properties not of interest
     prototype=prototype.symbolize_keys.slice(:id, :number, :first_name, :last_name, :gender, :group, :secs) if !prototype.nil?
@@ -96,17 +99,17 @@ class Racer
     Rails.logger.debug {"getting racer #{id}"}
 
     doc=collection.find(:_id=>id)
-                  .projection({_id:true, city:true, state:true, pop:true})
+                  .projection({_id:true, number:true, first_name:true, last_name:true, gender:true, group:true, secs:true})
                   .first
     return doc.nil? ? nil : Racer.new(doc)
   end 
 
   # create a new document using the current instance
   def save 
-    Rails.logger.debug {"saving #{self}"}
+    #Rails.logger.debug {"saving #{self}"}
 
-    result=self.class.collection
-              .insert_one(_id:@id, city:@city, state:@state, pop:@population)
+    result=self.class.collection.insert_one(_id:@id, number:@number, first_name:@first_name, last_name:@last_name, gender:@gender, group:@group, secs:@secs)
+
     @id=result.inserted_id
   end
 
@@ -114,9 +117,8 @@ class Racer
   def update(updates)
     Rails.logger.debug {"updating #{self} with #{updates}"}
 
-    #map internal :population term to :pop document term
-    updates[:pop]=updates[:population]  if !updates[:population].nil?
-    updates.slice!(:city, :state, :pop) if !updates.nil?
+    #updates.slice!(:city, :state, :pop) if !updates.nil?
+    updates.slice!(:number, :first_name, :last_name, :gender, :group, :secs) if !updates.nil?
 
     self.class.collection
               .find(_id:@id)
